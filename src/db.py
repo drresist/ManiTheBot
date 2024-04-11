@@ -26,6 +26,7 @@ def release_connection(conn):
     connection_pool.putconn(conn)
 
 def get_transactions() -> List[Dict]:
+    conn = None
     try:
         conn = get_connection()
         with conn.cursor() as cursor:
@@ -45,6 +46,7 @@ def get_transactions() -> List[Dict]:
             release_connection(conn)
 
 def add_payment(user_id: str, category_id: str, amount: str) -> None:
+    conn = None
     try:
         conn = get_connection()
         with conn.cursor() as cursor:
@@ -70,6 +72,4 @@ def get_categories() -> List[Dict]:
         return [{"id": category[0], "type": category[1], "category": category[2]} for category in categories]
     except (Exception, psycopg2.Error) as error:
         logger.error(f"Error while fetching categories: {error}")
-    finally:
-        if conn:
-            release_connection(conn)
+        return []  # Return an empty list in case of an error
