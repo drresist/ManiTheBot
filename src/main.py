@@ -6,7 +6,7 @@ from telebot import types
 
 from config import Config
 from db import add_payment, get_categories, get_transactions
-from diagrams import create_stacked_bar_chart
+from diagrams import create_income_expense_bar_chart, create_income_expense_summary
 from users import ALLOWED_USERS
 
 # load_dotenv()
@@ -60,8 +60,9 @@ def handle_stat_command(message):
 
     logger.debug(f"User {user_id} requested stat")
     data = get_transactions()
-    create_stacked_bar_chart(data)
-    bot.send_photo(message.chat.id, open('month_expense.png', 'rb'))
+    create_income_expense_bar_chart(data=data)
+    bot.send_message(message.chat.id, create_income_expense_summary())
+    bot.send_photo(message.chat.id, open('income_expense_last_30_days.png', 'rb'))
     logger.debug("Stat sent successfully")
 
 def handle_callback_query(call):
