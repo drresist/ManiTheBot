@@ -1,5 +1,5 @@
 import os
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from loguru import logger
 import telebot
 from telebot import types
@@ -9,7 +9,7 @@ from db import add_payment, get_categories, get_transactions
 from diagrams import create_stacked_bar_chart
 from users import ALLOWED_USERS
 
-load_dotenv()
+# load_dotenv()
 
 config = Config()
 token = os.getenv('TG_MANI_BOT')
