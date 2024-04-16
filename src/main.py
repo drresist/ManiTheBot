@@ -122,10 +122,9 @@ def handle_amount_input(message):
     if chat_id in selected_category_ids:
         category_id = selected_category_ids[chat_id]
         try:
-            amount = float(amount)
             add_payment(user_id=str(message.from_user.id), category_id=category_id, amount=amount)
             bot.send_message(message.chat.id, "Payment added successfully.")
-        except ValueError as e:
+        except ValueError:
             logger.error(f"Invalid amount entered: {amount}")
             bot.send_message(message.chat.id, "Invalid amount entered. Please enter a valid numeric value.")
         except Exception as e:

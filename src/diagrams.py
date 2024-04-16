@@ -46,7 +46,7 @@ def group_transactions_by_date_category(transactions: List[Dict]) -> dict[dateti
     logger.debug("Transactions grouped successfully")
     return transactions_by_date_category
 
-def create_income_expense_bar_chart(data: List[Dict], colors: List[str] = None, font: str = None) -> None:
+def create_income_expense_bar_chart(data: List[Dict]) -> None:
     logger.debug("Creating income/expense bar chart")
     filtered_data = filter_data_by_last_30_days(data)
     transactions_by_date_category = group_transactions_by_date_category(filtered_data)
@@ -57,8 +57,6 @@ def create_income_expense_bar_chart(data: List[Dict], colors: List[str] = None, 
     for i, category in enumerate(unique_categories):
         amounts = [transactions_by_date_category[date].get(category, 0) for date in dates]
         trace = go.Bar(x=[date.strftime('%d.%m.%Y') for date in dates], y=amounts, name=category)
-        if colors:
-            trace.marker.color = colors[i % len(colors)]
         traces.append(trace)
         
     fig = go.Figure(data=traces)
@@ -68,8 +66,6 @@ def create_income_expense_bar_chart(data: List[Dict], colors: List[str] = None, 
         barmode='relative',
         title='Income/Expense by Date and Category (Last 30 Days)'
     )
-    if font:
-        fig.update_layout(font_family=font)
     fig.update_xaxes(showgrid=True)
     fig.update_yaxes(showgrid=True)
     fig.write_image("income_expense_last_30_days.png")
