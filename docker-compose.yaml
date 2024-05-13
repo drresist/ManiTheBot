@@ -4,9 +4,9 @@ services:
     build: .
     restart: always
     environment:
-      - PG_HOST=${secrets.PG_HOST}
-      - TG_MANI_BOT=${secrets.TG_MANI_BOT}
-      - PG_USER=${secrets.PG_USER}
-      - PG_PASS=${secrets.PG_PASS}
-      - PG_DB=${secrets.PG_DB}
+      - PG_HOST=${PG_HOST}
+      - TG_MANI_BOT=${TG_MANI_BOT}
+      - PG_USER=${PG_USER}
+      - PG_PASS=${PG_PASS}
+      - PG_DB=${PG_DB}
     
