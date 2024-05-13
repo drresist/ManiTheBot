@@ -2,7 +2,7 @@ from typing import List, Dict
 
 import psycopg2
 from psycopg2 import pool
-from src.config import Config
+from config import Config
 from loguru import logger
 
 config = Config()
