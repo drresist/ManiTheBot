@@ -151,10 +151,13 @@ def send_welcome(message):
     handle_start_command(message)
 
 
+@bot.message_handler(content_types=['document'])
+def command_handle_doc(message):
+    bot.reply_to(message, "Doc recieved!")
+
 @bot.message_handler(commands=['stat'])
 def send_stat(message):
     handle_stat_command(message)
-
 
 @bot.callback_query_handler(func=lambda call: True)
 def handle_selection(call):

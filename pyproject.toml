@@ -13,6 +13,7 @@ plotly = "^5.20.0"
 loguru = "^0.7.2"
 psycopg2-binary = "^2.9.9"
 kaleido = "0.2.1"
+pandas = "2.2.2"
 
 
 [build-system]
