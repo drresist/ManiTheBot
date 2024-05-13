@@ -11,16 +11,17 @@ on:
 
 permissions:
   contents: read
-env:
-  PG_HOST: ${{ secrets.PG_HOST }}
-  TG_MANI_BOT: ${{ secrets.TG_MANI_BOT }}
-  PG_USER: ${{ secrets.PG_USER }}
-  PG_PASS: ${{ secrets.PG_PASS }}
-  PG_DB: ${{ secrets.PG_DB }}
+
 jobs:
   deploy:
     runs-on: self-hosted
     environment: prod
+    env:
+      PG_HOST: ${{ secrets.PG_HOST }}
+      TG_MANI_BOT: ${{ secrets.TG_MANI_BOT }}
+      PG_USER: ${{ secrets.PG_USER }}
+      PG_PASS: ${{ secrets.PG_PASS }}
+      PG_DB: ${{ secrets.PG_DB }}
     steps:
     - uses: actions/checkout@v2
       
