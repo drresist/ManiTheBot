@@ -19,14 +19,17 @@ if token is None:
 bot = telebot.TeleBot(token)
 selected_category_ids = {}
 
+
 def is_user_allowed(user_id):
     return user_id in ALLOWED_USERS
+
 
 def create_initial_keyboard():
     markup = types.InlineKeyboardMarkup(row_width=2)
     markup.add(types.InlineKeyboardButton("Expense", callback_data='expense'),
                types.InlineKeyboardButton("Income", callback_data='income'))
     return markup
+
 
 def create_category_keyboard(categories):
     markup = types.InlineKeyboardMarkup(row_width=2)
@@ -35,8 +38,10 @@ def create_category_keyboard(categories):
     logger.debug(f"Created category keyboard: {markup}")
     return markup
 
+
 def send_unauthorized_message(chat_id):
     bot.send_message(chat_id, "You are not authorized to use this bot.")
+
 
 def handle_start_command(message):
     user_id = message.from_user.id
@@ -50,6 +55,7 @@ def handle_start_command(message):
     bot.send_message(message.chat.id, "Please select a type:", reply_markup=markup)
     logger.debug("Initial keyboard sent successfully")
     logger.debug(f"Created initial keyboard: {markup}")
+
 
 def handle_stat_command(message):
     user_id = message.from_user.id
@@ -65,6 +71,7 @@ def handle_stat_command(message):
     bot.send_photo(message.chat.id, open('income_expense_last_30_days.png', 'rb'))
     logger.debug("Stat sent successfully")
 
+
 def handle_callback_query(call):
     user_id = call.from_user.id
     logger.debug(f"Received callback query from user {user_id}: {call.data}")
@@ -78,6 +85,7 @@ def handle_callback_query(call):
         handle_type_selection(call)
     else:
         handle_category_selection(call)
+
 
 def handle_type_selection(call):
     user_id = call.from_user.id
@@ -95,6 +103,7 @@ def handle_type_selection(call):
         logger.error(f"Error editing message text for user {user_id}: {str(e)}")
         bot.send_message(call.message.chat.id, "An error occurred. Please try again.")
 
+
 def handle_category_selection(call):
     user_id = call.from_user.id
     category_id = call.data
@@ -108,6 +117,7 @@ def handle_category_selection(call):
     except Exception as e:
         logger.error(f"Error sending message to user {user_id}: {str(e)}")
         bot.send_message(call.message.chat.id, "An error occurred. Please try again.")
+
 
 def handle_amount_input(message):
     user_id = message.from_user.id
@@ -135,13 +145,16 @@ def handle_amount_input(message):
     else:
         bot.send_message(message.chat.id, "Please select a category first.")
 
+
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     handle_start_command(message)
 
+
 @bot.message_handler(commands=['stat'])
 def send_stat(message):
     handle_stat_command(message)
+
 
 @bot.callback_query_handler(func=lambda call: True)
 def handle_selection(call):
@@ -149,9 +162,11 @@ def handle_selection(call):
     logger.info(f"Callback data: {call.data}")
     handle_callback_query(call)
 
+
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
     handle_amount_input(message)
+
 
 if __name__ == '__main__':
     bot.infinity_polling(timeout=10, long_polling_timeout=5)
