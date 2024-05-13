@@ -24,7 +24,7 @@ jobs:
       PG_DB: ${{ secrets.PG_DB }}
     steps:
     - uses: actions/checkout@v2
-      
+
     - name: Stop previous containers
       run: docker-compose down
         
