@@ -1,7 +1,5 @@
-from datetime import datetime, timedelta, date
-import decimal
-from typing import List, Dict, Union, Any
-from collections import defaultdict
+from datetime import datetime, timedelta
+from typing import List, Dict, Union
 from decimal import Decimal
 from db import get_transactions, get_categories
 import plotly.graph_objects as go
@@ -90,7 +88,7 @@ def generate_income_expense_summary(transactions: List[Dict]) -> str:
         else:
             total_expense += abs(amount)
 
-    summary = f"Income/Expense Summary (Last 30 Days):\n\n"
+    summary = "Income/Expense Summary (Last 30 Days):\n\n"
     summary += f"Total Income: {total_income:.2f}\n"
     summary += f"Total Expense: {total_expense:.2f}\n"
     summary += f"Net Income: {total_income - total_expense:.2f}"

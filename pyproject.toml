@@ -14,6 +14,7 @@ loguru = "^0.7.2"
 psycopg2-binary = "^2.9.9"
 kaleido = "0.2.1"
 pandas = "2.2.2"
+ruff = "0.4.4"
 
 
 [build-system]
