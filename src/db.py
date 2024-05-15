@@ -9,7 +9,7 @@ config = Config()
 
 connection_pool = pool.SimpleConnectionPool(
     minconn=1,
-    maxconn=10,
+    maxconn=20,
     host=config.PG_HOST,
     database=config.PG_DB,
     user=config.PG_USER,
