@@ -110,7 +110,9 @@ def add_payment(user_id: str, category_id: str, amount: str) -> None:
                                (user_id, category_id, amount))
                 conn.commit()
                 logger.debug("Payment added successfully")
+                release_connection(conn)
     except (Exception, psycopg2.Error) as error:
+        release_connection(conn)
         logger.error(f"Error while adding payment: {error}")
 
 
@@ -131,8 +133,11 @@ def get_categories() -> List[Dict]:
                 # Log the number of categories fetched
                 logger.debug(f"Fetched {len(categories)} categories from the database")
         # Prepare category data for return
+        release_connection(conn)
         return [{"id": category[0], "type": category[1], "category": category[2]} for category in categories]
+
     except (Exception, psycopg2.Error) as error:
         # Log error if fetching categories fails
         logger.error(f"Error while fetching categories: {error}")
+        release_connection(conn)
         return []
