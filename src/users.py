@@ -1,4 +1,2 @@
 # List of allowed users
-ALLOWED_USERS = [
-    718147355
-]
+ALLOWED_USERS = [718147355]

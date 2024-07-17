@@ -13,7 +13,7 @@ connection_pool = pool.SimpleConnectionPool(
     host=config.PG_HOST,
     database=config.PG_DB,
     user=config.PG_USER,
-    password=config.PG_PASS
+    password=config.PG_PASS,
 )
 
 
@@ -86,8 +86,8 @@ def get_transactions() -> List[Dict]:
                     "id": transaction[0],
                     "category_id": transaction[1],
                     "amount": transaction[2],
-                    "date": transaction[3].strftime('%d.%m.%Y'),
-                    "user_id": transaction[4]
+                    "date": transaction[3].strftime("%d.%m.%Y"),
+                    "user_id": transaction[4],
                 }
                 for transaction in transactions
             ]
@@ -105,9 +105,13 @@ def add_payment(user_id: str, category_id: str, amount: str) -> None:
     try:
         with get_connection() as conn:
             with conn.cursor() as cursor:
-                logger.debug(f"Adding payment: user_id={user_id}, category_id={category_id}, amount={amount}")
-                cursor.execute("INSERT INTO transactions (user_id, category_id, amount) VALUES (%s, %s, %s)",
-                               (user_id, category_id, amount))
+                logger.debug(
+                    f"Adding payment: user_id={user_id}, category_id={category_id}, amount={amount}"
+                )
+                cursor.execute(
+                    "INSERT INTO transactions (user_id, category_id, amount) VALUES (%s, %s, %s)",
+                    (user_id, category_id, amount),
+                )
                 conn.commit()
                 logger.debug("Payment added successfully")
                 release_connection(conn)
@@ -134,7 +138,10 @@ def get_categories() -> List[Dict]:
                 logger.debug(f"Fetched {len(categories)} categories from the database")
         # Prepare category data for return
         release_connection(conn)
-        return [{"id": category[0], "type": category[1], "category": category[2]} for category in categories]
+        return [
+            {"id": category[0], "type": category[1], "category": category[2]}
+            for category in categories
+        ]
 
     except (Exception, psycopg2.Error) as error:
         # Log error if fetching categories fails

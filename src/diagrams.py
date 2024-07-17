@@ -15,10 +15,10 @@ def get_category_name(category_id: int) -> Union[str, None]:
     logger.debug("Getting category name for category_id: {}", category_id)
     categories = get_categories()
     for category in categories:
-        if category['id'] == category_id:
-            category_cache[category_id] = category['category']
-            logger.debug("Found category name: {}", category['category'])
-            return category['category']
+        if category["id"] == category_id:
+            category_cache[category_id] = category["category"]
+            logger.debug("Found category name: {}", category["category"])
+            return category["category"]
     logger.warning("Category not found for category_id: {}", category_id)
     return None
 
@@ -27,24 +27,31 @@ def filter_data_by_last_30_days(transactions: List[Dict]) -> List[Dict]:
     logger.debug("Filtering data by last 30 days")
     today = datetime.today()
     last_30_days_start = today - timedelta(days=30)
-    return [row for row in transactions if datetime.strptime(row['date'], '%d.%m.%Y') >= last_30_days_start]
+    return [
+        row
+        for row in transactions
+        if datetime.strptime(row["date"], "%d.%m.%Y") >= last_30_days_start
+    ]
 
 
-def group_transactions_by_date_category(transactions: List[Dict]) -> dict[datetime, dict[str, Decimal]]:
+def group_transactions_by_date_category(
+    transactions: List[Dict],
+) -> dict[datetime, dict[str, Decimal]]:
     logger.debug("Grouping transactions by date and category")
     transactions_by_date_category = {}
     for row in transactions:
-        date_str = row['date']
-        category_id = row['category_id']
-        amount = Decimal(row['amount'])
-        date = datetime.strptime(date_str, '%d.%m.%Y')
+        date_str = row["date"]
+        category_id = row["category_id"]
+        amount = Decimal(row["amount"])
+        date = datetime.strptime(date_str, "%d.%m.%Y")
         if date not in transactions_by_date_category:
             transactions_by_date_category[date] = {}
         category_name = get_category_name(category_id)
         if category_name:
-            transactions_by_date_category[date][category_name] = transactions_by_date_category[date].get(category_name,
-                                                                                                         Decimal(
-                                                                                                             0)) + amount
+            transactions_by_date_category[date][category_name] = (
+                transactions_by_date_category[date].get(category_name, Decimal(0))
+                + amount
+            )
     logger.debug("Transactions grouped successfully")
     return transactions_by_date_category
 
@@ -55,20 +62,29 @@ def create_income_expense_bar_chart(data: List[Dict]) -> None:
     transactions_by_date_category = group_transactions_by_date_category(filtered_data)
     dates = list(transactions_by_date_category.keys())
     unique_categories = list(
-        set(category for categories in transactions_by_date_category.values() for category in categories))
+        set(
+            category
+            for categories in transactions_by_date_category.values()
+            for category in categories
+        )
+    )
 
     traces = []
     for i, category in enumerate(unique_categories):
-        amounts = [transactions_by_date_category[date].get(category, 0) for date in dates]
-        trace = go.Bar(x=[date.strftime('%d.%m.%Y') for date in dates], y=amounts, name=category)
+        amounts = [
+            transactions_by_date_category[date].get(category, 0) for date in dates
+        ]
+        trace = go.Bar(
+            x=[date.strftime("%d.%m.%Y") for date in dates], y=amounts, name=category
+        )
         traces.append(trace)
 
     fig = go.Figure(data=traces)
     fig.update_layout(
-        xaxis=dict(title='Date', tickangle=45),
-        yaxis=dict(title='Amount'),
-        barmode='relative',
-        title='Income/Expense by Date and Category (Last 30 Days)'
+        xaxis=dict(title="Date", tickangle=45),
+        yaxis=dict(title="Amount"),
+        barmode="relative",
+        title="Income/Expense by Date and Category (Last 30 Days)",
     )
     fig.update_xaxes(showgrid=True)
     fig.update_yaxes(showgrid=True)
@@ -82,7 +98,7 @@ def generate_income_expense_summary(transactions: List[Dict]) -> str:
     total_expense = Decimal(0)
 
     for transaction in transactions:
-        amount = Decimal(transaction['amount'])
+        amount = Decimal(transaction["amount"])
         if amount >= 0:
             total_income += amount
         else:

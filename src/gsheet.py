@@ -18,7 +18,7 @@ def authenticate_gspread():
 
 def open_spreadsheet():
     gc = authenticate_gspread()
-    sheet_id = os.getenv('SHEET_ID')
+    sheet_id = os.getenv("SHEET_ID")
     sh = gc.open_by_key(sheet_id)
     return sh
 
@@ -27,7 +27,9 @@ def add_payment(category_type, category, amount):
     sh = open_spreadsheet()
     worksheet = sh.sheet1
     current_datetime = datetime.now()
-    formatted_date = current_datetime.strftime("%d.%m.%Y")  # Customize the date format as needed
+    formatted_date = current_datetime.strftime(
+        "%d.%m.%Y"
+    )  # Customize the date format as needed
     if category_type == "Expense":
         amount = -1 * int(amount)
     row_data = [formatted_date, category_type, category, int(amount)]
