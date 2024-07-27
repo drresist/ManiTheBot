@@ -10,4 +10,6 @@ RUN pip install poetry && \
 
 COPY . .
 
+EXPOSE 4000
+
 CMD ["python", "src/main.py"]
