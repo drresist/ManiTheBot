@@ -1,5 +1,3 @@
-Here is a README.md file for your Telegram bot:
-
 # Mani The Bot
 
 ## Overview
