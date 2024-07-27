@@ -1,16 +1,11 @@
 import os
-
-# from dotenv import load_dotenv
 from loguru import logger
 import telebot
 from telebot import types
-
 from config import Config
 from db import add_payment, get_categories, get_transactions
 from diagrams import create_income_expense_bar_chart, create_income_expense_summary
 from users import ALLOWED_USERS
-
-# load_dotenv()
 
 config = Config()
 token = os.getenv("TG_MANI_BOT")
@@ -26,10 +21,11 @@ def is_user_allowed(user_id):
 
 
 def create_initial_keyboard():
-    markup = types.InlineKeyboardMarkup(row_width=2)
+    markup = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
     markup.add(
-        types.InlineKeyboardButton("Expense", callback_data="expense"),
-        types.InlineKeyboardButton("Income", callback_data="income"),
+        types.KeyboardButton("Expense"),
+        types.KeyboardButton("Income"),
+        types.KeyboardButton("Статистика")
     )
     return markup
 
@@ -42,110 +38,98 @@ def create_category_keyboard(categories):
                 category["category"], callback_data=str(category["id"])
             )
         )
+    markup.add(types.InlineKeyboardButton("Назад", callback_data="back"))
     logger.debug(f"Created category keyboard: {markup}")
     return markup
 
 
 def send_unauthorized_message(chat_id):
-    bot.send_message(chat_id, "You are not authorized to use this bot.")
+    bot.send_message(chat_id, "Вы не авторизованы для использования этого бота.")
 
 
 def handle_start_command(message):
     user_id = message.from_user.id
     if not is_user_allowed(user_id):
-        logger.warning(f"Unauthorized user {user_id} tried to start the bot")
+        logger.warning(f"Неавторизованный пользователь {user_id} попытался запустить бота")
         send_unauthorized_message(message.chat.id)
         return
 
     markup = create_initial_keyboard()
-    logger.debug(f"User {user_id} started the bot")
-    bot.send_message(message.chat.id, "Please select a type:", reply_markup=markup)
-    logger.debug("Initial keyboard sent successfully")
-    logger.debug(f"Created initial keyboard: {markup}")
+    logger.debug(f"Пользователь {user_id} запустил бота")
+    bot.send_message(message.chat.id, "Пожалуйста, выберите тип:", reply_markup=markup)
+    logger.debug("Начальная клавиатура успешно отправлена")
 
 
 def handle_stat_command(message):
     user_id = message.from_user.id
     if not is_user_allowed(user_id):
-        logger.warning(f"Unauthorized user {user_id} tried to request stat")
+        logger.warning(f"Неавторизованный пользователь {user_id} попытался запросить статистику")
         send_unauthorized_message(message.chat.id)
         return
 
-    logger.debug(f"User {user_id} requested stat")
+    logger.debug(f"Пользователь {user_id} запросил статистику")
     data = get_transactions()
     create_income_expense_bar_chart(data=data)
     bot.send_message(message.chat.id, create_income_expense_summary())
     bot.send_photo(message.chat.id, open("income_expense_last_30_days.png", "rb"))
-    logger.debug("Stat sent successfully")
+    logger.debug("Статистика успешно отправлена")
 
 
 def handle_callback_query(call):
     user_id = call.from_user.id
-    logger.debug(f"Received callback query from user {user_id}: {call.data}")
-
+    logger.debug(f"Получен callback-запрос от пользователя {user_id}: {call.data}")
     if not is_user_allowed(user_id):
-        logger.warning(f"Unauthorized user {user_id} tried to make a selection")
-        bot.answer_callback_query(call.id, "You are not authorized to use this bot.")
+        logger.warning(f"Неавторизованный пользователь {user_id} попытался сделать выбор")
+        bot.answer_callback_query(call.id, "Вы не авторизованы для использования этого бота.")
         return
 
-    if call.data in ["expense", "income"]:
-        handle_type_selection(call)
+    if call.data == "back":
+        markup = create_initial_keyboard()
+        bot.send_message(call.message.chat.id, "Выберите тип:", reply_markup=markup)
     else:
         handle_category_selection(call)
 
 
-def handle_type_selection(call):
-    user_id = call.from_user.id
-    logger.debug(f"User {user_id} selected {call.data}")
+def handle_type_selection(message):
+    user_id = message.from_user.id
+    logger.debug(f"Пользователь {user_id} выбрал {message.text}")
     categories = get_categories()
     selected_categories = [
-        category
-        for category in categories
-        if category["type"] == call.data.capitalize()
+        category for category in categories
+        if category["type"] == message.text
     ]
-    logger.debug(f"Selected categories: {selected_categories}")
+    logger.debug(f"Выбранные категории: {selected_categories}")
     markup = create_category_keyboard(selected_categories)
-
-    try:
-        bot.edit_message_text(
-            chat_id=call.message.chat.id,
-            message_id=call.message.message_id,
-            text="Please select a category:",
-            reply_markup=markup,
-        )
-        logger.debug(f"Edited message text for user {user_id}")
-    except Exception as e:
-        logger.error(f"Error editing message text for user {user_id}: {str(e)}")
-        bot.send_message(call.message.chat.id, "An error occurred. Please try again.")
+    bot.send_message(message.chat.id, "Выберите категорию:", reply_markup=markup)
 
 
 def handle_category_selection(call):
     user_id = call.from_user.id
     category_id = call.data
-    logger.debug(f"User {user_id} selected category ID: {category_id}")
+    logger.debug(f"Пользователь {user_id} выбрал категорию ID: {category_id}")
     selected_category_ids[call.message.chat.id] = category_id
-
     try:
         bot.send_message(
             call.message.chat.id,
-            f"You selected category ID: {category_id}. Please enter the amount of money:",
+            f"Вы выбрали категорию ID: {category_id}. Пожалуйста, введите сумму:",
         )
-        logger.debug(f"Sent message to user {user_id} requesting amount input")
+        logger.debug(f"Отправлено сообщение пользователю {user_id} с запросом ввода суммы")
     except Exception as e:
-        logger.error(f"Error sending message to user {user_id}: {str(e)}")
-        bot.send_message(call.message.chat.id, "An error occurred. Please try again.")
+        logger.error(f"Ошибка отправки сообщения пользователю {user_id}: {str(e)}")
+        bot.send_message(call.message.chat.id, "Произошла ошибка. Пожалуйста, попробуйте еще раз.")
 
 
 def handle_amount_input(message):
     user_id = message.from_user.id
     if not is_user_allowed(user_id):
-        logger.warning(f"Unauthorized user {user_id} tried to input an amount")
+        logger.warning(f"Неавторизованный пользователь {user_id} попытался ввести сумму")
         send_unauthorized_message(message.chat.id)
         return
 
     amount = message.text
-    logger.debug(f"Amount entered: {amount}")
+    logger.debug(f"Введенная сумма: {amount}")
     chat_id = message.chat.id
+
     if chat_id in selected_category_ids:
         category_id = selected_category_ids[chat_id]
         try:
@@ -154,22 +138,21 @@ def handle_amount_input(message):
                 category_id=category_id,
                 amount=amount,
             )
-            bot.send_message(message.chat.id, "Payment added successfully.")
+            bot.send_message(message.chat.id, "Платеж успешно добавлен.")
+            markup = create_initial_keyboard()
+            bot.send_message(message.chat.id, "Выберите следующее действие:", reply_markup=markup)
         except ValueError:
-            logger.error(f"Invalid amount entered: {amount}")
-            bot.send_message(
-                message.chat.id,
-                "Invalid amount entered. Please enter a valid numeric value.",
-            )
+            logger.error(f"Введена некорректная сумма: {amount}")
+            bot.send_message(message.chat.id, "Введена некорректная сумма. Пожалуйста, введите числовое значение.")
         except Exception as e:
-            logger.error(f"Failed to add payment: {e}")
-            bot.send_message(
-                message.chat.id, "Failed to add payment. Please try again."
-            )
+            logger.error(f"Не удалось добавить платеж: {e}")
+            bot.send_message(message.chat.id, "Не удалось добавить платеж. Пожалуйста, попробуйте еще раз.")
         finally:
             selected_category_ids.pop(chat_id, None)
     else:
-        bot.send_message(message.chat.id, "Please select a category first.")
+        bot.send_message(message.chat.id, "Пожалуйста, сначала выберите категорию.")
+        markup = create_initial_keyboard()
+        bot.send_message(message.chat.id, "Выберите тип:", reply_markup=markup)
 
 
 @bot.message_handler(commands=["start"])
@@ -179,7 +162,7 @@ def send_welcome(message):
 
 @bot.message_handler(content_types=["document"])
 def command_handle_doc(message):
-    bot.reply_to(message, "Doc recieved!")
+    bot.reply_to(message, "Документ получен!")
 
 
 @bot.message_handler(commands=["stat"])
@@ -189,14 +172,25 @@ def send_stat(message):
 
 @bot.callback_query_handler(func=lambda call: True)
 def handle_selection(call):
-    logger.info(f"Received callback query from user {call.from_user.id}")
-    logger.info(f"Callback data: {call.data}")
+    logger.info(f"Получен callback-запрос от пользователя {call.from_user.id}")
+    logger.info(f"Данные callback: {call.data}")
     handle_callback_query(call)
 
 
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
-    handle_amount_input(message)
+    user_id = message.from_user.id
+    if not is_user_allowed(user_id):
+        logger.warning(f"Неавторизованный пользователь {user_id} попытался использовать бота")
+        send_unauthorized_message(message.chat.id)
+        return
+
+    if message.text in ["Expense", "Income"]:
+        handle_type_selection(message)
+    elif message.text == "Статистика":
+        handle_stat_command(message)
+    else:
+        handle_amount_input(message)
 
 
 if __name__ == "__main__":
