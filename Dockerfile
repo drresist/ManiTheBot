@@ -7,7 +7,7 @@ COPY pyproject.toml poetry.lock ./
 RUN pip install poetry && \
     poetry config virtualenvs.create false && \
     poetry install --no-dev && \
-    apt-get install curl
+    apt-get -y update; apt-get -y install curl
 
 
 COPY . .
