@@ -3,6 +3,8 @@ services:
   app:
     build: .
     restart: always
+    ports:
+      - "4000:4000"
     environment:
       - PG_HOST=${PG_HOST}
       - TG_MANI_BOT=${TG_MANI_BOT}

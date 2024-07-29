@@ -5,6 +5,8 @@ from telebot import types
 from config import Config
 from db import add_payment, get_categories, get_transactions
 from diagrams import create_income_expense_bar_chart, create_income_expense_summary
+import threading
+from flask import Flask, jsonify
 from users import ALLOWED_USERS
 
 config = Config()
@@ -216,5 +218,30 @@ def handle_message(message):
         handle_amount_input(message)
 
 
+def flask_endpoint():
+
+    app = Flask(__name__)
+
+    health_status = True
+
+    @app.route('/toggle')
+    def toggle():
+        global health_status
+        health_status = not health_status
+        return jsonify(health_value=health_status)
+
+
+    @app.route('/health')
+    def health():
+        if health_status:
+            resp = jsonify(health="healthy")
+            resp.status_code = 200
+        else:
+            resp = jsonify(health="unhealthy")
+            resp.status_code = 500
+        return resp
+    threading.Thread(target=app.run, kwargs={'host': '0.0.0.0', 'port': 4000}).start()
+
 if __name__ == "__main__":
+    flask_endpoint()
     bot.infinity_polling(timeout=10, long_polling_timeout=5)
