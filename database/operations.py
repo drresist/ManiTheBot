@@ -71,9 +71,7 @@ def get_allowed_users() -> list[dict[str, Any]]:
 
             # Convert each transaction into a dictionary and return as a list
             return [
-                {
-                    "tg_id": transaction[0]
-                }
+                transaction[0]
                 for transaction in transactions
             ]
     except (Exception, psycopg2.Error) as error:
