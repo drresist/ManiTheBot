@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import List, Dict, Union
 from decimal import Decimal
-from db import get_transactions, get_categories
+from database.operations import get_transactions, get_categories
 import plotly.graph_objects as go
 from loguru import logger
 
