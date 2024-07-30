@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Any
 
 import psycopg2
 from psycopg2 import pool
@@ -50,6 +50,38 @@ def release_connection(conn):
     """
     logger.debug("Releasing database connection back to the pool")
     connection_pool.putconn(conn)
+
+
+def get_allowed_users() -> list[dict[str, Any]]:
+    conn = None
+    try:
+        # Get a database connection
+        conn = get_connection()
+
+        with conn.cursor() as cursor:
+            # Execute a query to fetch all transactions from the database
+            logger.debug("Executing query to fetch transactions")
+            cursor.execute("SELECT tg_id FROM users ")
+
+            # Fetch all transactions from the cursor
+            transactions = cursor.fetchall()
+
+            # Log the number of transactions fetched
+            logger.debug(f"Fetched {len(transactions)} transactions from the database")
+
+            # Convert each transaction into a dictionary and return as a list
+            return [
+                transaction[0]
+                for transaction in transactions
+            ]
+    except (Exception, psycopg2.Error) as error:
+        # Log and re-raise any errors that occur while fetching transactions
+        logger.error(f"Error while fetching users: {error}")
+        raise
+    finally:
+        # Release the database connection back to the connection pool
+        if conn:
+            release_connection(conn)
 
 
 def get_transactions() -> List[Dict]:
